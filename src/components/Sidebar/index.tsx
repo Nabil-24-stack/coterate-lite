@@ -147,7 +147,7 @@ const EmptyState = styled.div`
   }
 `;
 
-export default function Sidebar() {
+function Sidebar() {
   const { data: session } = useSession();
   
   const handleLogout = () => {
@@ -200,3 +200,7 @@ export default function Sidebar() {
     </SidebarContainer>
   );
 }
+
+// Export both as default and named export
+export { Sidebar };
+export default Sidebar;
