@@ -1,29 +1,27 @@
-import type { Metadata } from 'next';
-import { PageProvider } from '../contexts/PageContext';
+'use client';
+
+import { SessionProvider } from 'next-auth/react';
+import { Providers } from '@/components/Providers';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Coterate Lite',
-  description: 'A lightweight UI design feedback application',
-};
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jakarta',
+});
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={jakarta.variable}>
       <body>
-        <PageProvider>
-          {children}
-        </PageProvider>
+        <SessionProvider>
+          <Providers>{children}</Providers>
+        </SessionProvider>
       </body>
     </html>
   );
