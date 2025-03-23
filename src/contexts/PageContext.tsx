@@ -1,12 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-// Define a Page type
-interface Page {
-  id: string;
-  name: string;
-}
+import { Page } from '../types';
 
 // Define the context type
 interface PageContextType {
