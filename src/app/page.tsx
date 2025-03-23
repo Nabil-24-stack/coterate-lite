@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import Sidebar from '@/components/Sidebar';
+import { Sidebar } from '@/components/Sidebar';
 import Canvas from '@/components/Canvas';
 import styled from 'styled-components';
 import { PageContextProvider } from '@/contexts/PageContext';
