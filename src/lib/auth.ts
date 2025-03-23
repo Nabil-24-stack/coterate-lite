@@ -1,57 +1,76 @@
 import { NextAuthOptions } from 'next-auth';
-import FigmaProvider from 'next-auth/providers/figma';
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+// In a real application, you would use a database to store users
+// This is a simple in-memory implementation for demonstration purposes
+const users = [
+  {
+    id: '1',
+    name: 'Demo User',
+    email: 'user@example.com',
+    password: 'password123',
+  },
+];
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    FigmaProvider({
-      clientId: process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID!,
-      clientSecret: process.env.FIGMA_CLIENT_SECRET!,
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        // Find user with matching email and password
+        const user = users.find(
+          (user) => 
+            user.email === credentials.email && 
+            user.password === credentials.password
+        );
+
+        if (!user) {
+          return null;
+        }
+
+        // Return user without password
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        };
+      },
     }),
   ],
   session: {
     strategy: 'jwt',
   },
+  pages: {
+    signIn: '/login',
+  },
   callbacks: {
-    async jwt({ token, account }) {
-      // Initial sign in
-      if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-        token.expiresAt = account.expires_at;
-      }
-      
-      // Check if token has expired
-      const now = Math.floor(Date.now() / 1000);
-      if (token.expiresAt && now > token.expiresAt) {
-        // Token has expired, you would implement refresh logic here
-        // For the scope of this MVP, we'll just let the user re-authenticate
-        return token;
-      }
-      
+    async jwt({ token }) {
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken;
+      if (token && session.user) {
+        session.user.id = token.sub as string;
+      }
       return session;
     },
-  },
-  pages: {
-    signIn: '/login',
   },
 };
 
 // Add this to your next-auth.d.ts file or create it if it doesn't exist
-// to extend the session type with our custom properties
 declare module 'next-auth' {
   interface Session {
-    accessToken?: string;
-  }
-}
-
-declare module 'next-auth/jwt' {
-  interface JWT {
-    accessToken?: string;
-    refreshToken?: string;
-    expiresAt?: number;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
   }
 }
