@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
 
 const LoginContainer = styled.div`
@@ -61,12 +62,49 @@ const Subtitle = styled.p`
   max-width: 360px;
 `;
 
-const FigmaButton = styled.button`
+const Form = styled.form`
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background-color: #1E1E1E;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const FormGroup = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  }
+`;
+
+const ErrorMessage = styled.p`
+  color: #e53935;
+  font-size: 14px;
+  margin-top: 4px;
+`;
+
+const LoginButton = styled.button`
+  background-color: #4A90E2;
   color: white;
   border: none;
   border-radius: 8px;
@@ -75,10 +113,11 @@ const FigmaButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   width: 100%;
+  margin-top: 16px;
   transition: all 0.2s ease;
   
   &:hover {
-    background-color: #000000;
+    background-color: #3A80D2;
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   }
@@ -87,21 +126,50 @@ const FigmaButton = styled.button`
     transform: translateY(0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
+  
+  &:disabled {
+    background-color: #B0C4DE;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
 `;
 
-const FigmaIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M8 24C10.2091 24 12 22.2091 12 20V16H8C5.79086 16 4 17.7909 4 20C4 22.2091 5.79086 24 8 24Z" fill="#0ACF83"/>
-    <path d="M4 12C4 9.79086 5.79086 8 8 8H12V16H8C5.79086 16 4 14.2091 4 12Z" fill="#A259FF"/>
-    <path d="M4 4C4 1.79086 5.79086 0 8 0H12V8H8C5.79086 8 4 6.20914 4 4Z" fill="#F24E1E"/>
-    <path d="M12 0H16C18.2091 0 20 1.79086 20 4C20 6.20914 18.2091 8 16 8H12V0Z" fill="#FF7262"/>
-    <path d="M20 12C20 14.2091 18.2091 16 16 16C13.7909 16 12 14.2091 12 12C12 9.79086 13.7909 8 16 8C18.2091 8 20 9.79086 20 12Z" fill="#1ABCFE"/>
-  </svg>
-);
-
 export default function LoginPage() {
-  const handleFigmaLogin = () => {
-    signIn('figma', { callbackUrl: '/' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
+      
+      if (result?.error) {
+        setError('Invalid email or password');
+        setIsLoading(false);
+      } else {
+        router.push('/');
+      }
+    } catch (error) {
+      setError('An error occurred during sign in');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -113,13 +181,44 @@ export default function LoginPage() {
         </Logo>
         
         <Subtitle>
-          Log in with your Figma account to import and analyze your designs with AI
+          Log in to import and analyze your designs with AI
         </Subtitle>
         
-        <FigmaButton onClick={handleFigmaLogin}>
-          <FigmaIcon />
-          Sign in with Figma
-        </FigmaButton>
+        <Form onSubmit={handleSubmit}>
+          <FormGroup>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="user@example.com"
+              required
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </FormGroup>
+          
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          
+          <LoginButton type="submit" disabled={isLoading}>
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </LoginButton>
+          
+          <p style={{ fontSize: '14px', textAlign: 'center', color: '#666', marginTop: '16px' }}>
+            Demo credentials: user@example.com / password123
+          </p>
+        </Form>
       </LoginCard>
     </LoginContainer>
   );
