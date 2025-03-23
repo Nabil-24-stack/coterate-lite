@@ -1,24 +1,25 @@
 'use client';
 
 import React from 'react';
+import Sidebar from '@/components/Sidebar';
+import Canvas from '@/components/Canvas';
 import styled from 'styled-components';
-import { Sidebar } from '../components/Sidebar';
-import { Canvas } from '../components/Canvas';
+import { PageContextProvider } from '@/contexts/PageContext';
 
 const AppContainer = styled.div`
   display: flex;
+  width: 100%;
   height: 100vh;
-  width: 100vw;
   overflow: hidden;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  position: relative;
 `;
 
 export default function Home() {
   return (
-    <AppContainer>
-      <Sidebar />
-      <Canvas />
-    </AppContainer>
+    <PageContextProvider>
+      <AppContainer>
+        <Sidebar />
+        <Canvas />
+      </AppContainer>
+    </PageContextProvider>
   );
 }
